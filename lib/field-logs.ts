@@ -41,6 +41,22 @@ export async function listFieldLogsWithLocation(): Promise<ListResult> {
   return { logs: data as FieldLog[], error: null };
 }
 
+// The most recent location the user logged — a sensible place to start the map.
+export async function getLatestLocation() {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("field_logs")
+    .select("latitude, longitude")
+    .not("latitude", "is", null)
+    .not("longitude", "is", null)
+    .order("occurred_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return data as { latitude: number; longitude: number } | null;
+}
+
 export async function getFieldLog(id: string): Promise<FieldLog | null> {
   const supabase = await createClient();
 

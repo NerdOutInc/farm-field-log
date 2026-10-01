@@ -73,9 +73,11 @@ The map is an extra feature that switches on when a Mapbox token is present. Wit
    ```bash
    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.your-token
    ```
-4. Restart `npm run dev`. A **Map** link appears in the header, showing every entry that has a location.
+4. Restart `npm run dev`. Two things switch on:
+   - a **Map** link in the header, showing every entry that has a location
+   - a satellite map in the new/edit entry form — click to drop a pin, drag it to adjust
 
-Tip: use **Use Current Location** when creating an entry (or type a latitude/longitude) so it shows up on the map. Browsers only allow location access on `https://` sites or `localhost`.
+Without a token, you can still add a location with **Use Current Location** or by typing a latitude/longitude. Browsers only allow location access on `https://` sites or `localhost`.
 
 ## 7. Deploy to Vercel
 
@@ -111,7 +113,7 @@ app/
   logs/actions.ts          Create / update / delete (Server Actions)
   logs/map/page.tsx        Map page (optional, Mapbox)
 components/                UI pieces (LogForm, LogCard, CategoryFilter, …)
-components/map/            Mapbox map component (optional feature)
+components/map/            Mapbox map + location picker (optional feature)
 lib/
   field-logs.ts            Supabase read queries for field_logs
   categories.ts            Categories and the FieldLog type

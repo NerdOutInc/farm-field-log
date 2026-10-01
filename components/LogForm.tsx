@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import type { LogFormState } from "@/app/logs/actions";
 import { Alert } from "@/components/Alert";
+import { LocationPicker } from "@/components/map/LocationPicker";
 import { inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/components/styles";
 import { CATEGORIES, CATEGORY_LABELS, type FieldLog } from "@/lib/categories";
+import { isMapEnabled } from "@/lib/mapbox";
 import { useIsClient } from "@/lib/use-is-client";
 
 type Props = {
@@ -13,9 +15,11 @@ type Props = {
   action: (state: LogFormState, formData: FormData) => Promise<LogFormState>;
   log?: FieldLog;
   submitLabel: string;
+  // Optional Mapbox: where the location picker starts when there's no pin yet.
+  mapCenter?: { latitude: number; longitude: number } | null;
 };
 
-export function LogForm({ action, log, submitLabel }: Props) {
+export function LogForm({ action, log, submitLabel, mapCenter }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
   const isClient = useIsClient();
 
@@ -61,6 +65,15 @@ export function LogForm({ action, log, submitLabel }: Props) {
       },
       { enableHighAccuracy: true, timeout: 15000 },
     );
+  }
+
+  // The pin shown on the map, when both fields hold valid coordinates.
+  const pin = parseLocation(latitude, longitude);
+
+  function placePin(location: { latitude: number; longitude: number }) {
+    setLatitude(location.latitude.toFixed(6));
+    setLongitude(location.longitude.toFixed(6));
+    setLocationStatus(null);
   }
 
   function clearLocation() {
@@ -150,6 +163,11 @@ export function LogForm({ action, log, submitLabel }: Props) {
             {locationStatus.text}
           </p>
         )}
+        {isMapEnabled && (
+          <div className="mt-4">
+            <LocationPicker value={pin} onChange={placePin} initialCenter={mapCenter} />
+          </div>
+        )}
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div>
             <label htmlFor="latitude" className="mb-1 block text-xs font-medium text-muted">Latitude</label>
@@ -186,6 +204,14 @@ export function LogForm({ action, log, submitLabel }: Props) {
       </div>
     </form>
   );
+}
+
+function parseLocation(latitude: string, longitude: string) {
+  if (latitude.trim() === "" || longitude.trim() === "") return null;
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return { latitude: lat, longitude: lng };
 }
 
 // Formats a Date as "YYYY-MM-DDTHH:mm" in the browser's local time zone.
